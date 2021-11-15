@@ -3,8 +3,13 @@ package router
 import (
 	"fmt"
 	"github.com/labstack/echo/v4"
+	"nashtanet-backend-go/adapter/handler/handler_echo"
+	"nashtanet-backend-go/adapter/presenter"
+	"nashtanet-backend-go/domain/entity"
 	"nashtanet-backend-go/infrastructure/database"
+	"nashtanet-backend-go/infrastructure/persistence/repository_gorm"
 	"nashtanet-backend-go/infrastructure/validation"
+	"nashtanet-backend-go/usecase"
 	"time"
 )
 
@@ -37,7 +42,7 @@ func (e *echoEngineGorm) Listen() {
 	e.setAppHandlers()
 
 	// AutoMigrate(domain struct)
-	err := e.db.AutoMigrate()
+	err := e.db.AutoMigrate(&entity.User{}, &entity.Role{})
 	if err != nil {
 		return
 	}
@@ -49,6 +54,16 @@ func (e *echoEngineGorm) setAppHandlers() {
 	e.router.POST("/auth/signup", e.buildSignupHandler)
 }
 
-func (e *echoEngineGorm) buildSignupHandler(context echo.Context) error {
-	return nil
+func (e *echoEngineGorm) buildSignupHandler(c echo.Context) error {
+	var (
+		uc = usecase.NewSignupInteractor(
+			repository_gorm.NewUserRepositoryGorm(e.db),
+			presenter.NewSignupPresenter(),
+			e.ctxTimeout,
+		)
+
+		act = handler_echo.NewSignupHandler(uc, e.router.Logger, e.validator)
+	)
+
+	return act.Execute(c)
 }

@@ -9,10 +9,10 @@ type config struct {
 	password string
 }
 
-func NewConfigPostgres() *config  {
+func NewConfigPostgres() *config {
 	return &config{
 		host:     "localhost",
-		database: "okedok_golang",
+		database: "portal_nashtanet_golang",
 		port:     "5432",
 		driver:   "postgres",
 		user:     "postgres",
